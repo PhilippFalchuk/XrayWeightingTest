@@ -1,0 +1,15 @@
+[SettGroup]
+betatronX=0
+betatronY=0
+AX=650
+AY=0
+BX=650
+BY=530
+CX=605
+CY=573
+DX=305
+DY=573
+ABn=41
+BCn=7
+CDn=21
+numberOfSegments=3
