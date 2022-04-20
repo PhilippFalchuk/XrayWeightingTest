@@ -18,7 +18,9 @@ public:
 
     int measureWeightOfImage();
     void updateNormalizedImage();
-    void toCalculateDistanceFromMidDividingLine();
+    void toCalculateDistanceFromDividingLineMid();
+    void toCalculateDistanceFromDividingLineClose();
+    void toCalculateDistanceFromDividingLineFar();
     void toCalculateDistanceFromBetatron();
 
 signals:
@@ -46,7 +48,7 @@ private:
 
     QVector<QPoint> m_pointsOfAngles;
     QVector<QPoint> m_pointsOfCrossing;
-    QVector<int> m_distancesOfDetectorsFromMiddle;
+    QVector<int> m_distancesOfDetectorsFromDividingLine;
     QVector<int> m_distancesOfDetectorsFromBetatron;
     QVector<int> m_speedOfColumn;
     QPoint m_betatronCoordinates;
@@ -62,6 +64,8 @@ private:
     int m_thirdSegmentNumOfDetectors;
     int m_numOfSegments;
 
+
+    float toCalculateCoefficientofCrossing(int numOfDetector, int shiftOfDividingLine = 0);
 
 };
 

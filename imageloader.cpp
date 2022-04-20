@@ -67,15 +67,17 @@ ImageLoader::ImageLoader(QObject *parent)
 
 //    qDebug() << m_detectorCoordinates;
 
-    toCalculateDistanceFromMidDividingLine();
+    toCalculateDistanceFromDividingLineFar();
+
+
     toCalculateDistanceFromBetatron();
 
 
-
-
-
-
-
+    for(int i = 0; i < m_distancesOfDetectorsFromDividingLine.size(); i++)
+    {
+        if(!(i%8))
+            qDebug() << i/8 << m_distancesOfDetectorsFromDividingLine[i];
+    }
 }
 
 QVector<quint32> ImageLoader::loadImage()
@@ -174,7 +176,7 @@ QVector<quint32> ImageLoader::loadImage()
 
     updateNormalizedImage();
 
-    measureWeightOfImage();
+//    measureWeightOfImage();
 
 return QVector<quint32>();
 
@@ -243,14 +245,14 @@ int ImageLoader::measureWeightOfImage()
         for(int y = m_weightRect.y(); y < m_weightRect.y() + m_weightRect.height(); y++ )
         {
             volumeOfPixels += ( (m_speedOfColumn[x - m_weightRect.x()] * m_period * m_sizeOfDetector) / m_distancesOfDetectorsFromBetatron[y-m_weightRect.y()])*
-                    (( ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromMiddle[y - m_weightRect.y()]) + thicknessOfPixels[m_widthOfXrayImg*y + x])*
-                    ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromMiddle[y - m_weightRect.y()]) + thicknessOfPixels[m_widthOfXrayImg*y + x])  -
-                    ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromMiddle[y - m_weightRect.y()]) - thicknessOfPixels[m_widthOfXrayImg*y + x])*
-                    ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromMiddle[y - m_weightRect.y()]) - thicknessOfPixels[m_widthOfXrayImg*y + x]) )/2);
+                    (( ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromDividingLine[y - m_weightRect.y()]) + thicknessOfPixels[m_widthOfXrayImg*y + x])*
+                    ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromDividingLine[y - m_weightRect.y()]) + thicknessOfPixels[m_widthOfXrayImg*y + x])  -
+                    ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromDividingLine[y - m_weightRect.y()]) - thicknessOfPixels[m_widthOfXrayImg*y + x])*
+                    ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromDividingLine[y - m_weightRect.y()]) - thicknessOfPixels[m_widthOfXrayImg*y + x]) )/2);
         }
     }
 
-    //qDebug() << volumeOfPixels;
+    qDebug() << volumeOfPixels;
 }
 
 void ImageLoader::updateNormalizedImage()
@@ -314,64 +316,70 @@ void ImageLoader::updateNormalizedImage()
 
 }
 
-void ImageLoader::toCalculateDistanceFromMidDividingLine()
+void ImageLoader::toCalculateDistanceFromDividingLineMid()
 {
+    m_pointsOfCrossing = QVector<QPoint>();
     for(int count = 0; count < m_detectorCoordinates.size(); count++)
     {
-        if(count < 58)
+        float n; // coefficient
+        if(count <= m_numOfDetectors[0] + m_numOfDetectors[1] + m_numOfDetectors[2]/2)
         {
-            float n; // coefficient
-            if((m_endOfDividingVector.y() - m_startOfDividingVector.y()) != 0)
-            {
-                float q = (m_endOfDividingVector.x() - m_startOfDividingVector.x()) / (m_startOfDividingVector.y() - m_endOfDividingVector.y());
-                float sn = (m_detectorCoordinates[count].x() - m_betatronCoordinates.x()) + (m_detectorCoordinates[count].y() - m_betatronCoordinates.y())*q;
-                float fn = (m_detectorCoordinates[count].x() - m_startOfDividingVector.x()) + (m_detectorCoordinates[count].y() - m_startOfDividingVector.y())*q;
-                n = fn / sn;
-            }else
-            {
-                if(!(m_detectorCoordinates[count].y() - m_betatronCoordinates.y())){ return; }
-                n = (m_detectorCoordinates[count].y() - m_startOfDividingVector.y()) / (m_detectorCoordinates[count].y() - m_betatronCoordinates.y());
-            }
-
-            m_pointsOfCrossing.push_back(QPoint(m_detectorCoordinates[count].x() + (m_betatronCoordinates.x() - m_detectorCoordinates[count].x())*n, m_detectorCoordinates[count].y() + (m_betatronCoordinates.y() - m_detectorCoordinates[count].y())*n));
+            n = toCalculateCoefficientofCrossing(count,0);
         }else
         {
-            float n; // coefficient
-            if((m_endOfDividingVector.y() - m_startOfDividingVector.y()) != 0)
-            {
-                float q = ((m_endOfDividingVector.x() - 150) - (m_startOfDividingVector.x() - 150)) / (m_startOfDividingVector.y() - m_endOfDividingVector.y());
-                float sn = (m_detectorCoordinates[count].x() - m_betatronCoordinates.x()) + (m_detectorCoordinates[count].y() - m_betatronCoordinates.y())*q;
-                float fn = (m_detectorCoordinates[count].x() - (m_startOfDividingVector.x() - 150)) + (m_detectorCoordinates[count].y() - m_startOfDividingVector.y())*q;
-                n = fn / sn;
-            }else
-            {
-                if(!(m_detectorCoordinates[count].y() - m_betatronCoordinates.y())){ return; }
-                n = (m_detectorCoordinates[count].y() - m_startOfDividingVector.y()) / (m_detectorCoordinates[count].y() - m_betatronCoordinates.y());
-            }
-
-            m_pointsOfCrossing.push_back(QPoint(m_detectorCoordinates[count].x() + (m_betatronCoordinates.x() - m_detectorCoordinates[count].x())*n, m_detectorCoordinates[count].y() + (m_betatronCoordinates.y() - m_detectorCoordinates[count].y())*n));
+            n = toCalculateCoefficientofCrossing(count,-150);
         }
+
+        m_pointsOfCrossing.push_back(QPoint(m_detectorCoordinates[count].x() + (m_betatronCoordinates.x() - m_detectorCoordinates[count].x())*n, m_detectorCoordinates[count].y() + (m_betatronCoordinates.y() - m_detectorCoordinates[count].y())*n));
     }
 
     for(int count = 0; count/8 < m_pointsOfCrossing.size(); count++)
     {
-        if(m_pointsOfCrossing[count/8].y() <= m_endOfDividingVector.y())
-        {
-            QPoint distancePoint = m_detectorCoordinates[count/8] - m_pointsOfCrossing[count/8];
+        QPoint distancePoint = m_detectorCoordinates[count/8] - m_pointsOfCrossing[count/8];
+        m_distancesOfDetectorsFromDividingLine.push_back(distancePoint.manhattanLength());
+    }
+}
 
-            m_distancesOfDetectorsFromMiddle.push_back(distancePoint.manhattanLength());
-        }else
-        {
-            m_distancesOfDetectorsFromMiddle.push_back(-1);
-        }
+void ImageLoader::toCalculateDistanceFromDividingLineClose()
+{
+    m_pointsOfCrossing = QVector<QPoint>();
+    for(int count = 0; count < m_detectorCoordinates.size(); count++)
+    {
+        float n = toCalculateCoefficientofCrossing(count, -150);
+        m_pointsOfCrossing.push_back(QPoint(m_detectorCoordinates[count].x() + (m_betatronCoordinates.x() - m_detectorCoordinates[count].x())*n, m_detectorCoordinates[count].y() + (m_betatronCoordinates.y() - m_detectorCoordinates[count].y())*n));
     }
 
-
-
-    for(int i = 0; i < m_distancesOfDetectorsFromMiddle.size(); i++)
+    for(int count = 0; count/8 < m_pointsOfCrossing.size(); count++)
     {
-        if(!(i%8))
-            qDebug() << i/8 << m_distancesOfDetectorsFromMiddle[i];
+        QPoint distancePoint = m_detectorCoordinates[count/8] - m_pointsOfCrossing[count/8];
+        m_distancesOfDetectorsFromDividingLine.push_back(distancePoint.manhattanLength());
+    }
+}
+
+void ImageLoader::toCalculateDistanceFromDividingLineFar()
+{
+    m_pointsOfCrossing = QVector<QPoint>();
+    for(int count = 0; count < m_detectorCoordinates.size(); count++)
+    {
+        float n; // coefficient
+        if(count <= m_numOfDetectors[0] + m_numOfDetectors[1])
+        {
+            n = toCalculateCoefficientofCrossing(count,150);
+        }else if(count <= m_numOfDetectors[0] + m_numOfDetectors[1] + m_numOfDetectors[2]/2)
+        {
+            n = toCalculateCoefficientofCrossing(count,0);
+        }else
+        {
+            n = toCalculateCoefficientofCrossing(count,-150);
+        }
+
+        m_pointsOfCrossing.push_back(QPoint(m_detectorCoordinates[count].x() + (m_betatronCoordinates.x() - m_detectorCoordinates[count].x())*n, m_detectorCoordinates[count].y() + (m_betatronCoordinates.y() - m_detectorCoordinates[count].y())*n));
+    }
+
+    for(int count = 0; count/8 < m_pointsOfCrossing.size(); count++)
+    {
+        QPoint distancePoint = m_detectorCoordinates[count/8] - m_pointsOfCrossing[count/8];
+        m_distancesOfDetectorsFromDividingLine.push_back(distancePoint.manhattanLength());
     }
 }
 
@@ -385,4 +393,22 @@ void ImageLoader::toCalculateDistanceFromBetatron()
     }
 
     //qDebug() << m_distancesOfDetectorsFromBetatron;
+}
+
+float ImageLoader::toCalculateCoefficientofCrossing(int numOfDetector, int shiftOfDividingLine)
+{
+    int detNum = numOfDetector;
+
+
+    if((m_endOfDividingVector.y() - m_startOfDividingVector.y()) != 0)
+    {
+        float q = ((m_endOfDividingVector.x()) - (m_startOfDividingVector.x())) / (m_startOfDividingVector.y() - m_endOfDividingVector.y());
+        float sn = (m_detectorCoordinates[detNum].x() - m_betatronCoordinates.x()) + (m_detectorCoordinates[detNum].y() - m_betatronCoordinates.y())*q;
+        float fn = (m_detectorCoordinates[detNum].x() - (m_startOfDividingVector.x() + shiftOfDividingLine)) + (m_detectorCoordinates[detNum].y() - m_startOfDividingVector.y())*q;
+        return  fn / sn;
+    }else
+    {
+        if(!(m_detectorCoordinates[detNum].y() - m_betatronCoordinates.y())){ return -500000000.; }
+        return (m_detectorCoordinates[detNum].y() - m_startOfDividingVector.y()) / (m_detectorCoordinates[detNum].y() - m_betatronCoordinates.y());
+    }
 }

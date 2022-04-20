@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     imageLoader.loadImage();
 
+    imageLoader.measureWeightOfImage();
+
 //    QVector<quint32> imageVector = imageLoader.loadImage();
 
 
