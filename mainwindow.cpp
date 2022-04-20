@@ -7,7 +7,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_imageWeighter = new ImageWeighter;
 
     ImageLoader imageLoader;
 
@@ -50,7 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    delete m_imageWeighter;
     delete ui;
 }
 

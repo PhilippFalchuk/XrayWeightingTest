@@ -18,7 +18,7 @@ public:
 
     int measureWeightOfImage();
     void updateNormalizedImage();
-    void toCalculateDistanceFromDividingLine();
+    void toCalculateDistanceFromMidDividingLine();
     void toCalculateDistanceFromBetatron();
 
 signals:

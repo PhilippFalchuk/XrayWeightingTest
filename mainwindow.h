@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "imageweighter.h"
 #include "imageloader.h"
 #include <QFile>
 #include <QDebug>
@@ -25,7 +24,6 @@ public slots:
 private:
     Ui::MainWindow *ui;
 
-    ImageWeighter* m_imageWeighter = nullptr;
     quint32 m_imageWidth;
     quint32 m_imageHeight;
 

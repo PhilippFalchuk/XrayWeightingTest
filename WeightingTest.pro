@@ -10,13 +10,11 @@ CONFIG += c++11
 
 SOURCES += \
     imageloader.cpp \
-    imageweighter.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     imageloader.h \
-    imageweighter.h \
     mainwindow.h
 
 FORMS += \
