@@ -1,15 +1,10 @@
-#include "imageloader.h"
-#include <QImage>
-#include <QQueue>
-#include <QPainter>
-#include <math.h>
+#include "imageweighter.h"
 
-ImageLoader::ImageLoader(QObject *parent)
+ImageWeighter::ImageWeighter(QObject *parent)
     : QObject{parent}
 {
     m_settings = new QSettings("Geometry.ini", QSettings::IniFormat);
     qDebug() << m_settings->fileName();
-
 
     m_settings->beginGroup("SettGroup");
 
@@ -30,20 +25,10 @@ ImageLoader::ImageLoader(QObject *parent)
 
     m_settings->endGroup();
 
-
     m_startOfDividingVector = QPoint(m_endOfDividingVector.x(), m_betatronCoordinates.y());
-
     m_pointsOfAngles = QVector<QPoint>{m_ACoordinates, m_BCoordinates, m_CCoordinates, m_DCoordinates};
-
     m_numOfDetectors = QVector<int>{m_firstSegmentNumOfDetectors,m_secondSegmentNumOfDetectors,m_thirdSegmentNumOfDetectors};
-
-
     m_detectorCoordinates = QVector<QPoint>();
-
-   // qDebug() << m_numOfDetectors;
-    //qDebug() << m_numOfSegments;
-
-    //qDebug() << m_pointsOfAngles;
 
     for(int i=0;i< m_numOfSegments;i++)
         {
@@ -54,33 +39,27 @@ ImageLoader::ImageLoader(QObject *parent)
             float lenghtOfDetectorY = (static_cast<float>(endPoint.y() - startPoint.y()))/ static_cast<float>(m_numOfDetectors[i]);
             for(int j=0;j< m_numOfDetectors[i];j++)
             {
-
                 int xCoordinate = startPoint.x() + lenghtOfDetectorX*j;
                 int yCoordinate = startPoint.y() + lenghtOfDetectorY*j;
-
                 QPoint coordinatesOfDetector = QPoint(xCoordinate,yCoordinate);
 
                 m_detectorCoordinates.push_back(coordinatesOfDetector);
-
             }
         }
 
 //    qDebug() << m_detectorCoordinates;
 
-    toCalculateDistanceFromDividingLineFar();
-
-
+    toCalculateDistanceFromDividingLineMid();
     toCalculateDistanceFromBetatron();
 
-
-    for(int i = 0; i < m_distancesOfDetectorsFromDividingLine.size(); i++)
-    {
-        if(!(i%8))
-            qDebug() << i/8 << m_distancesOfDetectorsFromDividingLine[i];
-    }
+//    for(int i = 0; i < m_distancesOfDetectorsFromDividingLine.size(); i++)
+//    {
+//        if(!(i%8))
+//            qDebug() << i/8 << m_distancesOfDetectorsFromDividingLine[i];
+//    }
 }
 
-QVector<quint32> ImageLoader::loadImage()
+QVector<quint32> ImageWeighter::loadImage()
 {
     QFile intFile("i_6PET.int");
     QByteArray intBa;
@@ -97,15 +76,8 @@ QVector<quint32> ImageLoader::loadImage()
 
     baStream.setByteOrder(QDataStream::LittleEndian);
 
-//    quint32 m_widthOfXrayImg;
-//    quint32 m_heightOfXrayImg;
     baStream >> m_widthOfXrayImg;
     baStream >> m_heightOfXrayImg;
-
-
-    emit gotImageSize(m_widthOfXrayImg, m_heightOfXrayImg);
-
-    //qDebug() << widthOfXrayImg << heightOfXrayImg;
 
     baStream.skipRawData(56);
 
@@ -125,65 +97,40 @@ QVector<quint32> ImageLoader::loadImage()
 
     QImage imgX(m_widthOfXrayImg, m_heightOfXrayImg, QImage::Format_RGB888);
 
-    //qDebug() << m_maxInt;
-
-
-    //QRgb color = qRgb(127,127,127);
-
-
     for(int y = 0; y < m_heightOfXrayImg; y++)
     {
         for(int x = 0; x < m_widthOfXrayImg; x++)
         {
             quint16 brightness = static_cast<quint16>(((static_cast<double>(m_imageVector[m_widthOfXrayImg*y +x]))/m_maxInt) * 255);
-
             imgX.setPixel(x,y, qRgb(brightness,brightness,brightness) );
         }
     }
-
 
     m_weightRect = QRect(503, 180, 5, 5);
     m_calibRect = QRect(0,480, m_widthOfXrayImg, 20);
     m_I0Rect = QRect(m_widthOfXrayImg - 90,0,80,m_heightOfXrayImg);
 
-
-
-
-
     QPainter p(&imgX);
     p.setBrush(Qt::red);
-
     p.drawRect(m_weightRect);
 
     p.setBrush(Qt::blue);
-
     p.drawRect(m_calibRect);
 
     p.setBrush(Qt::green);
     p.drawRect(m_I0Rect);
 
-
-
-
-
-
     imgX.save("657.bmp");
-
 
     m_speedOfColumn.resize(m_widthOfXrayImg);
     m_speedOfColumn.fill(300);
 
-
     updateNormalizedImage();
 
-//    measureWeightOfImage();
-
-return QVector<quint32>();
-
-
+    return QVector<quint32>();
 }
 
-int ImageLoader::measureWeightOfImage()
+float ImageWeighter::measureWeightOfImage()
 {
     float evenColumn = 0;
     float unevenColumn = 0;
@@ -210,8 +157,6 @@ int ImageLoader::measureWeightOfImage()
         qDebug() << "uneven is 9";
     }
 
-
-
     QVector<float> thicknessOfPixels(m_normalizedImageVector.size());
     thicknessOfPixels.fill(0);
 
@@ -226,19 +171,16 @@ int ImageLoader::measureWeightOfImage()
         }
     }
 
-
     float volumeOfPixels =0;
 
+//    QVector<float> thicknessDebug;
 
-    QVector<float> thicknessDebug;
-
-    for(int i = 0; i < thicknessOfPixels.size(); i++)
-    {
-        if(thicknessOfPixels[i] != 0)
-            thicknessDebug.append(thicknessOfPixels[i]);
-    }
-
-    //qDebug() << thicknessDebug;
+//    for(int i = 0; i < thicknessOfPixels.size(); i++)
+//    {
+//        if(thicknessOfPixels[i] != 0)
+//            thicknessDebug.append(thicknessOfPixels[i]);
+//    }
+//    //qDebug() << thicknessDebug;
 
     for(int x = m_weightRect.x(); x < m_weightRect.x() + m_weightRect.width(); x++)
     {
@@ -252,10 +194,10 @@ int ImageLoader::measureWeightOfImage()
         }
     }
 
-    qDebug() << volumeOfPixels;
+    return volumeOfPixels;
 }
 
-void ImageLoader::updateNormalizedImage()
+void ImageWeighter::updateNormalizedImage()
 {
     m_normalizedImageVector = QVector<float>(m_imageVector.size());
 
@@ -272,51 +214,40 @@ void ImageLoader::updateNormalizedImage()
     }
 
     float sumOfColumns = 0;
-
     for(int i = 0; i< columnSumVector.size(); i++)
     {
         sumOfColumns += columnSumVector[i];
     }
 
     float avgOfColumns = sumOfColumns / columnSumVector.size();
-
     for(int x = 0; x < columnSumVector.size(); x++)
     {
         columnSumVector[x] = columnSumVector[x] / avgOfColumns;
     }
 
-//    qDebug() << columnSumVector;
-
-        for(int y = 0; y < m_heightOfXrayImg; y++)
+    for(int y = 0; y < m_heightOfXrayImg; y++)
+    {
+        for(int x = 0; x < m_widthOfXrayImg; x++)
         {
-            for(int x = 0; x < m_widthOfXrayImg; x++)
-            {
-                m_normalizedImageVector[m_widthOfXrayImg*y+x] = m_imageVector[m_widthOfXrayImg*y +x] / columnSumVector[x];
-            }
+            m_normalizedImageVector[m_widthOfXrayImg*y+x] = m_imageVector[m_widthOfXrayImg*y +x] / columnSumVector[x];
         }
-
+    }
 
     QImage imgY(m_widthOfXrayImg, m_heightOfXrayImg, QImage::Format_RGB888);
-
-
 
     for(int y = 0; y < m_heightOfXrayImg; y++)
     {
         for(int x = 0; x < m_widthOfXrayImg; x++)
         {
             quint16 brightness = static_cast<quint16>(((static_cast<double>(m_normalizedImageVector[m_widthOfXrayImg*y +x]))/m_maxInt) * 255);
-
             imgY.setPixel(x,y, qRgb(brightness,brightness,brightness) );
         }
     }
 
-
-
     imgY.save("777.bmp");
-
 }
 
-void ImageLoader::toCalculateDistanceFromDividingLineMid()
+void ImageWeighter::toCalculateDistanceFromDividingLineMid()
 {
     m_pointsOfCrossing = QVector<QPoint>();
     for(int count = 0; count < m_detectorCoordinates.size(); count++)
@@ -340,7 +271,7 @@ void ImageLoader::toCalculateDistanceFromDividingLineMid()
     }
 }
 
-void ImageLoader::toCalculateDistanceFromDividingLineClose()
+void ImageWeighter::toCalculateDistanceFromDividingLineClose()
 {
     m_pointsOfCrossing = QVector<QPoint>();
     for(int count = 0; count < m_detectorCoordinates.size(); count++)
@@ -356,7 +287,7 @@ void ImageLoader::toCalculateDistanceFromDividingLineClose()
     }
 }
 
-void ImageLoader::toCalculateDistanceFromDividingLineFar()
+void ImageWeighter::toCalculateDistanceFromDividingLineFar()
 {
     m_pointsOfCrossing = QVector<QPoint>();
     for(int count = 0; count < m_detectorCoordinates.size(); count++)
@@ -383,23 +314,18 @@ void ImageLoader::toCalculateDistanceFromDividingLineFar()
     }
 }
 
-void ImageLoader::toCalculateDistanceFromBetatron()
+void ImageWeighter::toCalculateDistanceFromBetatron()
 {
     for(int count = 0; count/8 < m_detectorCoordinates.size(); count++)
     {
         QPoint distancePoint = m_detectorCoordinates[count/8] - m_betatronCoordinates;
-
         m_distancesOfDetectorsFromBetatron.push_back(distancePoint.manhattanLength());
     }
-
-    //qDebug() << m_distancesOfDetectorsFromBetatron;
 }
 
-float ImageLoader::toCalculateCoefficientofCrossing(int numOfDetector, int shiftOfDividingLine)
+float ImageWeighter::toCalculateCoefficientofCrossing(int numOfDetector, int shiftOfDividingLine)
 {
     int detNum = numOfDetector;
-
-
     if((m_endOfDividingVector.y() - m_startOfDividingVector.y()) != 0)
     {
         float q = ((m_endOfDividingVector.x()) - (m_startOfDividingVector.x())) / (m_startOfDividingVector.y() - m_endOfDividingVector.y());

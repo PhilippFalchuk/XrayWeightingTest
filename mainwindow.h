@@ -1,8 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "imageweighter.h"
+
 #include <QMainWindow>
-#include "imageloader.h"
 #include <QFile>
 #include <QDebug>
 
@@ -18,14 +19,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-public slots:
-    void onImageSizeRecieved(quint32 width, quint32 height);
-
 private:
     Ui::MainWindow *ui;
-
-    quint32 m_imageWidth;
-    quint32 m_imageHeight;
-
 };
 #endif // MAINWINDOW_H
