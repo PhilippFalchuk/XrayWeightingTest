@@ -152,9 +152,15 @@ float ImageWeighter::measureWeightOfImage()
     if(evenColumn > unevenColumn)
     {
         qDebug() << "even is 9";
+        m_evenIsBigger = true;
+        if(evenColumn/unevenColumn > 1.2)
+            m_imageIsDual = true;
     }else
     {
         qDebug() << "uneven is 9";
+        m_evenIsBigger = false;
+        if(unevenColumn/evenColumn > 1.2)
+            m_imageIsDual = true;
     }
 
     QVector<float> thicknessOfPixels(m_normalizedImageVector.size());
@@ -164,7 +170,18 @@ float ImageWeighter::measureWeightOfImage()
     {
         for(int y = m_weightRect.y(); y < m_weightRect.y() + m_weightRect.height(); y++ )
         {
-            if(!(x%2))
+//            if(!(x%2))
+//            {
+//                thicknessOfPixels[m_widthOfXrayImg*y + x] = (-(logf(m_normalizedImageVector[m_widthOfXrayImg*y + x] / m_normalizedImageVector[m_widthOfXrayImg*y + m_I0Rect.x()])))*m_T0;
+//            }
+
+            if(!m_imageIsDual)
+            {
+                thicknessOfPixels[m_widthOfXrayImg*y + x] = (-(logf(m_normalizedImageVector[m_widthOfXrayImg*y + x] / m_normalizedImageVector[m_widthOfXrayImg*y + m_I0Rect.x()])))*m_T0;
+            }else if(m_evenIsBigger && !(x%2))
+            {
+                thicknessOfPixels[m_widthOfXrayImg*y + x] = (-(logf(m_normalizedImageVector[m_widthOfXrayImg*y + x] / m_normalizedImageVector[m_widthOfXrayImg*y + m_I0Rect.x()])))*m_T0;
+            }else if(!m_evenIsBigger && x%2)
             {
                 thicknessOfPixels[m_widthOfXrayImg*y + x] = (-(logf(m_normalizedImageVector[m_widthOfXrayImg*y + x] / m_normalizedImageVector[m_widthOfXrayImg*y + m_I0Rect.x()])))*m_T0;
             }
