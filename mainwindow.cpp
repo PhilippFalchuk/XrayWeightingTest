@@ -17,18 +17,6 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << weightOfImage;
 
 
-    QCamera* camera;
-
-    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
-    for (const QCameraInfo &cameraInfo : cameras) {
-            camera = new QCamera(cameraInfo);
-    }
-
-    qDebug() << camera;
-
-    QVideoProbe *probe = new QVideoProbe;
-
-    connect(probe, SIGNAL(videoFrameProbed(QVideoFrame)), this, SLOT(processFrame(QVideoFrame)));
 
 }
 
