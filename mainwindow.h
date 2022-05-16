@@ -23,6 +23,16 @@ public:
 private:
     Ui::MainWindow *ui;
 
+    QVector<quint32> m_imageVector;
+    QVector<float> m_normalizedImageVector;
+
+    quint32 m_widthOfXrayImg;
+    quint32 m_heightOfXrayImg;
+    QRect m_calibRect;
+    QRect m_I0Rect;
+    QRect m_weightRect;
+    QVector<int> m_speedOfColumn;
+
     void loadImage();
 };
 #endif // MAINWINDOW_H
