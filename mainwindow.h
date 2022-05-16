@@ -23,6 +23,6 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    void processFrame(QVideoFrame);
+    void loadImage();
 };
 #endif // MAINWINDOW_H

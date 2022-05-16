@@ -16,8 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     qDebug() << weightOfImage;
 
-
-
+    exit(0);
 }
 
 MainWindow::~MainWindow()
@@ -25,7 +24,4 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::processFrame(QVideoFrame vf)
-{
-    qDebug() << vf;
-}
+
