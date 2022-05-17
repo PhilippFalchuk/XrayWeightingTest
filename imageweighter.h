@@ -2,13 +2,9 @@
 #define IMAGEWEIGHTER_H
 
 #include <QObject>
-#include <QFile>
 #include <QDebug>
-#include <QDataStream>
 #include <QRect>
 #include <QSettings>
-#include <QImage>
-#include <QQueue>
 #include <QPainter>
 #include <math.h>
 

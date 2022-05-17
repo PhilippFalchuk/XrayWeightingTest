@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QCamera>
-#include <QCameraInfo>
-#include <QVideoProbe>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

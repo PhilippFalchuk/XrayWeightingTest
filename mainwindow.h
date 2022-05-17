@@ -6,7 +6,7 @@
 #include <QMainWindow>
 #include <QFile>
 #include <QDebug>
-#include <QVideoProbe>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
