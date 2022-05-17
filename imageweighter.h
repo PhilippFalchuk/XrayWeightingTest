@@ -17,12 +17,11 @@ class ImageWeighter : public QObject
     Q_OBJECT
 public:
     explicit ImageWeighter(QVector<float> normalizedImageVector, quint32 widthOfXrayImg,
-                                    quint32 heightOfXrayImg, QRect weightRect, QRect I0Rect,
-                                    QVector<int> speedColumn, int hypotesis, QObject *parent = nullptr);
+                                    quint32 heightOfXrayImg, QVector<int> speedColumn,
+                                    QObject *parent = nullptr);
 
-    QVector<quint32> loadImage();
-    float measureWeightOfImage();
-    void updateNormalizedImage();
+
+    float measureWeightOfImage(QRect weightRect, QRect I0Rect, int hypotesis);
 
 private:
     QSettings* m_settings = nullptr;

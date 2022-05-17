@@ -1,8 +1,8 @@
 #include "imageweighter.h"
 
 ImageWeighter::ImageWeighter(QVector<float> normalizedImageVector, quint32 widthOfXrayImg,
-                             quint32 heightOfXrayImg, QRect weightRect, QRect I0Rect,
-                             QVector<int> speedColumn, int hypotesis, QObject *parent)
+                             quint32 heightOfXrayImg, QVector<int> speedColumn,
+                             QObject *parent)
     : QObject{parent}
 {
     m_settings = new QSettings("Geometry.ini", QSettings::IniFormat);
@@ -49,24 +49,22 @@ ImageWeighter::ImageWeighter(QVector<float> normalizedImageVector, quint32 width
             }
         }
 
-//    qDebug() << m_detectorCoordinates;
-
-
-
-//    for(int i = 0; i < m_distancesOfDetectorsFromDividingLine.size(); i++)
-//    {
-//        if(!(i%8))
-//            qDebug() << i/8 << m_distancesOfDetectorsFromDividingLine[i];
-//    }
-
     m_normalizedImageVector = normalizedImageVector;
     m_widthOfXrayImg = widthOfXrayImg;
     m_heightOfXrayImg = heightOfXrayImg;
+    m_speedOfColumn = speedColumn;
+
+    toCalculateDistanceFromBetatron();
+}
+
+
+
+float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hypotesis)
+{
     m_weightRect = weightRect;
     m_I0Rect = I0Rect;
-    m_speedOfColumn = speedColumn;
-    m_hypotesis = hypotesis;
 
+    m_hypotesis = hypotesis;
 
     if(m_hypotesis == 1){
         toCalculateDistanceFromDividingLineClose();
@@ -77,92 +75,6 @@ ImageWeighter::ImageWeighter(QVector<float> normalizedImageVector, quint32 width
     }else{
         toCalculateDistanceFromDividingLineMid();
     }
-
-
-
-
-
-    toCalculateDistanceFromBetatron();
-}
-
-QVector<quint32> ImageWeighter::loadImage()
-{
-    QFile intFile("i_6PET.int");
-    QByteArray intBa;
-
-    if(!intFile.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "cant open file";
-    }else
-    {
-        intBa = intFile.readAll();
-    }
-
-    QDataStream baStream(&intBa, QIODevice::ReadWrite);
-
-    baStream.setByteOrder(QDataStream::LittleEndian);
-
-    baStream >> m_widthOfXrayImg;
-    baStream >> m_heightOfXrayImg;
-
-    baStream.skipRawData(56);
-
-    m_imageVector = QVector<quint32>(m_widthOfXrayImg*m_heightOfXrayImg);
-    for(int i = 0; i < m_imageVector.size(); i++)
-    {
-        baStream >> m_imageVector[i];
-    }
-
-    m_maxInt = 0;
-
-    for(int i =0; i < m_imageVector.size(); i++)
-    {
-        if(m_imageVector[i] > m_maxInt)
-            m_maxInt = m_imageVector[i];
-    }
-
-    QImage imgX(m_widthOfXrayImg, m_heightOfXrayImg, QImage::Format_RGB888);
-
-    for(int y = 0; y < m_heightOfXrayImg; y++)
-    {
-        for(int x = 0; x < m_widthOfXrayImg; x++)
-        {
-            quint16 brightness = static_cast<quint16>(((static_cast<double>(m_imageVector[m_widthOfXrayImg*y +x]))/m_maxInt) * 255);
-            imgX.setPixel(x,y, qRgb(brightness,brightness,brightness) );
-        }
-    }
-
-    m_weightRect = QRect(503, 180, 5, 5);
-    m_calibRect = QRect(0,480, m_widthOfXrayImg, 20);
-    m_I0Rect = QRect(m_widthOfXrayImg - 90,0,80,m_heightOfXrayImg);
-
-    QPainter p(&imgX);
-    p.setBrush(Qt::red);
-    p.drawRect(m_weightRect);
-
-    p.setBrush(Qt::blue);
-    p.drawRect(m_calibRect);
-
-    p.setBrush(Qt::green);
-    p.drawRect(m_I0Rect);
-
-    imgX.save("657.bmp");
-
-    m_speedOfColumn.resize(m_widthOfXrayImg);
-    m_speedOfColumn.fill(300);
-
-    updateNormalizedImage();
-
-    return QVector<quint32>();
-}
-
-float ImageWeighter::measureWeightOfImage()
-{
-
-
-
-
-
 
     float evenColumn = 0;
     float unevenColumn = 0;
@@ -202,11 +114,6 @@ float ImageWeighter::measureWeightOfImage()
     {
         for(int y = m_weightRect.y(); y < m_weightRect.y() + m_weightRect.height(); y++ )
         {
-//            if(!(x%2))
-//            {
-//                thicknessOfPixels[m_widthOfXrayImg*y + x] = (-(logf(m_normalizedImageVector[m_widthOfXrayImg*y + x] / m_normalizedImageVector[m_widthOfXrayImg*y + m_I0Rect.x()])))*m_T0;
-//            }
-
             if(!m_imageIsDual)
             {
                 thicknessOfPixels[m_widthOfXrayImg*y + x] = (-(logf(m_normalizedImageVector[m_widthOfXrayImg*y + x] / m_normalizedImageVector[m_widthOfXrayImg*y + m_I0Rect.x()])))*m_T0;
@@ -222,15 +129,6 @@ float ImageWeighter::measureWeightOfImage()
 
     float volumeOfPixels =0;
 
-//    QVector<float> thicknessDebug;
-
-//    for(int i = 0; i < thicknessOfPixels.size(); i++)
-//    {
-//        if(thicknessOfPixels[i] != 0)
-//            thicknessDebug.append(thicknessOfPixels[i]);
-//    }
-//    //qDebug() << thicknessDebug;
-
     for(int x = m_weightRect.x(); x < m_weightRect.x() + m_weightRect.width(); x++)
     {
         for(int y = m_weightRect.y(); y < m_weightRect.y() + m_weightRect.height(); y++ )
@@ -244,58 +142,6 @@ float ImageWeighter::measureWeightOfImage()
     }
 
     return volumeOfPixels;
-}
-
-void ImageWeighter::updateNormalizedImage()
-{
-    m_normalizedImageVector = QVector<float>(m_imageVector.size());
-
-    QVector<float> columnSumVector(m_widthOfXrayImg);
-    columnSumVector.fill(0);
-
-    for(int x = 0; x < m_widthOfXrayImg; x++)
-    {
-        for(int y = m_calibRect.y(); y < m_calibRect.y() + m_calibRect.height(); y++)
-        {
-            columnSumVector[x] += static_cast<float>(m_imageVector[y*m_widthOfXrayImg + x]);
-        }
-        columnSumVector[x] /= static_cast<float>(m_calibRect.height());
-    }
-
-    float sumOfColumns = 0;
-    for(int i = 0; i< columnSumVector.size(); i++)
-    {
-        sumOfColumns += columnSumVector[i];
-    }
-
-    float avgOfColumns = sumOfColumns / columnSumVector.size();
-    for(int x = 0; x < columnSumVector.size(); x++)
-    {
-        columnSumVector[x] = columnSumVector[x] / avgOfColumns;
-    }
-
-    for(int y = 0; y < m_heightOfXrayImg; y++)
-    {
-        for(int x = 0; x < m_widthOfXrayImg; x++)
-        {
-            m_normalizedImageVector[m_widthOfXrayImg*y+x] = m_imageVector[m_widthOfXrayImg*y +x] / columnSumVector[x];
-        }
-    }
-
-    QImage imgY(m_widthOfXrayImg, m_heightOfXrayImg, QImage::Format_RGB888);
-
-    for(int y = 0; y < m_heightOfXrayImg; y++)
-    {
-        for(int x = 0; x < m_widthOfXrayImg; x++)
-        {
-            quint16 brightness = static_cast<quint16>(((static_cast<double>(m_normalizedImageVector[m_widthOfXrayImg*y +x]))/m_maxInt) * 255);
-            imgY.setPixel(x,y, qRgb(brightness,brightness,brightness) );
-        }
-    }
-
-    imgY.save("777.bmp");
-
-    //qDebug() << m_normalizedImageVector;
 }
 
 void ImageWeighter::toCalculateDistanceFromDividingLineMid()
