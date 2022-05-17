@@ -16,7 +16,9 @@ class ImageWeighter : public QObject
 {
     Q_OBJECT
 public:
-    explicit ImageWeighter(QVector<float> normalizedImageVector, QObject *parent = nullptr);
+    explicit ImageWeighter(QVector<float> normalizedImageVector, quint32 widthOfXrayImg,
+                                    quint32 heightOfXrayImg, QRect weightRect, QRect I0Rect,
+                                    QVector<int> speedColumn, int hypotesis, QObject *parent = nullptr);
 
     QVector<quint32> loadImage();
     float measureWeightOfImage();
@@ -60,6 +62,8 @@ private:
     int m_secondSegmentNumOfDetectors;
     int m_thirdSegmentNumOfDetectors;
     int m_numOfSegments;
+    int m_hypotesis;
+
 
     void toCalculateDistanceFromDividingLineMid();
     void toCalculateDistanceFromDividingLineClose();

@@ -10,8 +10,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ImageWeighter imageLoader;
-    imageLoader.loadImage();
+    loadImage();
+
+    //qDebug() << m_normalizedImageVector;
+
+
+    ImageWeighter imageLoader(m_normalizedImageVector, m_widthOfXrayImg, m_heightOfXrayImg, m_weightRect,
+                                            m_I0Rect, m_speedOfColumn, 2);
+    //imageLoader.loadImage();
     float weightOfImage = imageLoader.measureWeightOfImage();
 
     qDebug() << weightOfImage;
@@ -63,7 +69,39 @@ void MainWindow::loadImage()
 
     //updateNormalizedImage();
 
+    m_normalizedImageVector = QVector<float>(m_imageVector.size());
 
+    QVector<float> columnSumVector(m_widthOfXrayImg);
+    columnSumVector.fill(0);
+
+    for(int x = 0; x < m_widthOfXrayImg; x++)
+    {
+        for(int y = m_calibRect.y(); y < m_calibRect.y() + m_calibRect.height(); y++)
+        {
+            columnSumVector[x] += static_cast<float>(m_imageVector[y*m_widthOfXrayImg + x]);
+        }
+        columnSumVector[x] /= static_cast<float>(m_calibRect.height());
+    }
+
+    float sumOfColumns = 0;
+    for(int i = 0; i< columnSumVector.size(); i++)
+    {
+        sumOfColumns += columnSumVector[i];
+    }
+
+    float avgOfColumns = sumOfColumns / columnSumVector.size();
+    for(int x = 0; x < columnSumVector.size(); x++)
+    {
+        columnSumVector[x] = columnSumVector[x] / avgOfColumns;
+    }
+
+    for(int y = 0; y < m_heightOfXrayImg; y++)
+    {
+        for(int x = 0; x < m_widthOfXrayImg; x++)
+        {
+            m_normalizedImageVector[m_widthOfXrayImg*y+x] = m_imageVector[m_widthOfXrayImg*y +x] / columnSumVector[x];
+        }
+    }
 }
 
 

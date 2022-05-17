@@ -1,6 +1,8 @@
 #include "imageweighter.h"
 
-ImageWeighter::ImageWeighter(QObject *parent)
+ImageWeighter::ImageWeighter(QVector<float> normalizedImageVector, quint32 widthOfXrayImg,
+                             quint32 heightOfXrayImg, QRect weightRect, QRect I0Rect,
+                             QVector<int> speedColumn, int hypotesis, QObject *parent)
     : QObject{parent}
 {
     m_settings = new QSettings("Geometry.ini", QSettings::IniFormat);
@@ -49,14 +51,38 @@ ImageWeighter::ImageWeighter(QObject *parent)
 
 //    qDebug() << m_detectorCoordinates;
 
-    toCalculateDistanceFromDividingLineMid();
-    toCalculateDistanceFromBetatron();
+
 
 //    for(int i = 0; i < m_distancesOfDetectorsFromDividingLine.size(); i++)
 //    {
 //        if(!(i%8))
 //            qDebug() << i/8 << m_distancesOfDetectorsFromDividingLine[i];
 //    }
+
+    m_normalizedImageVector = normalizedImageVector;
+    m_widthOfXrayImg = widthOfXrayImg;
+    m_heightOfXrayImg = heightOfXrayImg;
+    m_weightRect = weightRect;
+    m_I0Rect = I0Rect;
+    m_speedOfColumn = speedColumn;
+    m_hypotesis = hypotesis;
+
+
+    if(m_hypotesis == 1){
+        toCalculateDistanceFromDividingLineClose();
+    }else if(m_hypotesis == 2){
+        toCalculateDistanceFromDividingLineMid();
+    }else if (m_hypotesis == 3){
+        toCalculateDistanceFromDividingLineFar();
+    }else{
+        toCalculateDistanceFromDividingLineMid();
+    }
+
+
+
+
+
+    toCalculateDistanceFromBetatron();
 }
 
 QVector<quint32> ImageWeighter::loadImage()
@@ -132,6 +158,12 @@ QVector<quint32> ImageWeighter::loadImage()
 
 float ImageWeighter::measureWeightOfImage()
 {
+
+
+
+
+
+
     float evenColumn = 0;
     float unevenColumn = 0;
 
@@ -262,6 +294,8 @@ void ImageWeighter::updateNormalizedImage()
     }
 
     imgY.save("777.bmp");
+
+    //qDebug() << m_normalizedImageVector;
 }
 
 void ImageWeighter::toCalculateDistanceFromDividingLineMid()
