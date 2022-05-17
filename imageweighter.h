@@ -16,7 +16,7 @@ class ImageWeighter : public QObject
 {
     Q_OBJECT
 public:
-    explicit ImageWeighter(QObject *parent = nullptr);
+    explicit ImageWeighter(QVector<float> normalizedImageVector, QObject *parent = nullptr);
 
     QVector<quint32> loadImage();
     float measureWeightOfImage();
