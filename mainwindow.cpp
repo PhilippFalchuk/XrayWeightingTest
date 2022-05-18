@@ -59,7 +59,7 @@ void MainWindow::loadImage()
     }
 
 
-    m_weightRect = QRect(503, 180, 5, 5);
+    m_weightRect = QRect(200, 180, 400, 200);
     m_calibRect = QRect(0,480, m_widthOfXrayImg, 20);
     m_I0Rect = QRect(m_widthOfXrayImg - 90,0,80,m_heightOfXrayImg);
 

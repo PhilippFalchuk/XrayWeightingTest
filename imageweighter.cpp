@@ -124,8 +124,15 @@ float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hy
             {
                 thicknessOfPixels[m_widthOfXrayImg*y + x] = (-(logf(m_normalizedImageVector[m_widthOfXrayImg*y + x] / m_normalizedImageVector[m_widthOfXrayImg*y + m_I0Rect.x() + (1 - m_I0Rect.x()%2)])))*m_T0;
             }
+
+            if(thicknessOfPixels[m_widthOfXrayImg*y + x] == qInf())
+            {
+                thicknessOfPixels[m_widthOfXrayImg*y + x] = 300;
+            }
         }
     }
+
+
 
     float volumeOfPixels =0;
 
@@ -139,6 +146,13 @@ float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hy
                     ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromDividingLine[y - m_weightRect.y()]) - thicknessOfPixels[m_widthOfXrayImg*y + x])*
                     ( (m_distancesOfDetectorsFromBetatron[y- m_weightRect.y()] -  m_distancesOfDetectorsFromDividingLine[y - m_weightRect.y()]) - thicknessOfPixels[m_widthOfXrayImg*y + x]) )/2);
         }
+    }
+
+
+
+    if(volumeOfPixels < 0)
+    {
+        return -1;
     }
 
     return volumeOfPixels;
