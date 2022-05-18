@@ -13,11 +13,14 @@ MainWindow::MainWindow(QWidget *parent)
     //qDebug() << m_normalizedImageVector;
 
 
+
     ImageWeighter imageWeighter(m_normalizedImageVector, m_widthOfXrayImg, m_heightOfXrayImg,m_speedOfColumn);
     //imageLoader.loadImage();
     float weightOfImage = imageWeighter.measureWeightOfImage(m_weightRect, m_I0Rect, 2);
 
     qDebug() << weightOfImage;
+
+
 
     exit(0);
 }
