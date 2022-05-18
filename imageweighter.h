@@ -33,6 +33,7 @@ private:
     quint32 m_maxInt;
     bool m_imageIsDual = false;
     bool m_evenIsBigger = false;
+    bool m_weightZoneHasInfinityThickness = false;
 
     const float m_T0 = 24;
     const float m_period = 0.0025;

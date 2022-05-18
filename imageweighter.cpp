@@ -61,6 +61,11 @@ ImageWeighter::ImageWeighter(QVector<float> normalizedImageVector, quint32 width
 
 float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hypotesis)
 {
+    m_imageIsDual = false;
+    m_evenIsBigger = false;
+    m_weightZoneHasInfinityThickness = false;
+
+
     m_weightRect = weightRect;
     m_I0Rect = I0Rect;
 
@@ -128,6 +133,7 @@ float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hy
             if(thicknessOfPixels[m_widthOfXrayImg*y + x] == qInf())
             {
                 thicknessOfPixels[m_widthOfXrayImg*y + x] = 300;
+                m_weightZoneHasInfinityThickness = true;
             }
         }
     }
@@ -153,6 +159,9 @@ float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hy
     if(volumeOfPixels < 0)
     {
         return -1;
+    }else if(m_weightZoneHasInfinityThickness)
+    {
+        return -2;
     }
 
     return volumeOfPixels;
