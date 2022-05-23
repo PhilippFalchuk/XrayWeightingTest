@@ -17,7 +17,7 @@ public:
                                     QObject *parent = nullptr);
 
 
-    float measureWeightOfImage(QRect weightRect, QRect I0Rect, int hypotesis);
+    float measureWeightOfImage(QRect weightRect, QRect I0Rect, int hypotesis, bool& infinityFlag);
 
 private:
     QSettings* m_settings = nullptr;

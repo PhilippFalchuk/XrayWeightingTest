@@ -2,7 +2,7 @@
 
 ImageWeighter::ImageWeighter(QVector<float> normalizedImageVector, quint32 widthOfXrayImg,
                              quint32 heightOfXrayImg, QVector<int> speedColumn,
-                             QObject *parent)
+                              QObject *parent)
     : QObject{parent}
 {
     m_settings = new QSettings("Geometry.ini", QSettings::IniFormat);
@@ -59,7 +59,7 @@ ImageWeighter::ImageWeighter(QVector<float> normalizedImageVector, quint32 width
 
 
 
-float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hypotesis)
+float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hypotesis, bool& infinityFlag)
 {
     m_imageIsDual = false;
     m_evenIsBigger = false;
@@ -160,13 +160,11 @@ float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hy
     }
 
 
+    infinityFlag = m_weightZoneHasInfinityThickness;
 
     if(volumeOfPixels < 0)
     {
         return -1;
-    }else if(m_weightZoneHasInfinityThickness)
-    {
-        return -2;
     }
 
     return volumeOfPixels;

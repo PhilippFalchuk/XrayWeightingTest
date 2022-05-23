@@ -12,13 +12,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     //qDebug() << m_normalizedImageVector;
 
-
+    bool test1 = false;
 
     ImageWeighter imageWeighter(m_normalizedImageVector, m_widthOfXrayImg, m_heightOfXrayImg,m_speedOfColumn);
     //imageLoader.loadImage();
-    float weightOfImage = imageWeighter.measureWeightOfImage(m_weightRect, m_I0Rect, 2);
+    float weightOfImage = imageWeighter.measureWeightOfImage(m_weightRect, m_I0Rect, 2, test1);
 
-    qDebug() << weightOfImage;
+    qDebug() << weightOfImage << test1;
 
 
 
@@ -59,7 +59,7 @@ void MainWindow::loadImage()
     }
 
 
-    m_weightRect = QRect(200, 180, 400, 200);
+    m_weightRect = QRect(100, 100, 200, 400);
     m_calibRect = QRect(0,480, m_widthOfXrayImg, 20);
     m_I0Rect = QRect(m_widthOfXrayImg - 90,0,80,m_heightOfXrayImg);
 
