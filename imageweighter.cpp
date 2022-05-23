@@ -135,6 +135,11 @@ float ImageWeighter::measureWeightOfImage(QRect weightRect, QRect I0Rect, int hy
                 thicknessOfPixels[m_widthOfXrayImg*y + x] = 300;
                 m_weightZoneHasInfinityThickness = true;
             }
+
+            if(m_imageIsDual)
+            {
+                thicknessOfPixels[m_widthOfXrayImg*y /+ x] *= 2;
+            }
         }
     }
 
